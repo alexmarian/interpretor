@@ -36,21 +36,9 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 	switch l.ch {
 	case '=':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = token.Token{Type: token.EQ, Literal: string(ch) + string(l.ch)}
-		} else {
-			tok = newToken(token.ASSIGN, l.ch)
-		}
+		tok = l.attemptTwoLetterLiteral('=', token.EQ, token.ASSIGN)
 	case '!':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = token.Token{Type: token.NOT_EQ, Literal: string(ch) + string(l.ch)}
-		} else {
-			tok = newToken(token.BANG, l.ch)
-		}
+		tok = l.attemptTwoLetterLiteral('=', token.NOT_EQ, token.BANG)
 	case '/':
 		tok = newToken(token.SLASH, l.ch)
 	case '*':
@@ -117,6 +105,14 @@ func (l *Lexer) skipWhitespace() {
 	}
 }
 
+func (l *Lexer) attemptTwoLetterLiteral(attemptedPart byte, twoLetterToken, oneLetterToken token.TokenType) token.Token {
+	ch := l.ch
+	if l.peekChar() == attemptedPart {
+		l.readChar()
+		return token.Token{Type: twoLetterToken, Literal: string(ch) + string(l.ch)}
+	}
+	return token.Token{Type: oneLetterToken, Literal: string(ch)}
+}
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
 }
